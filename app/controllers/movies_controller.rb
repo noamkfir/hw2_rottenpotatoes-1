@@ -7,15 +7,37 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @all_ratings = Movie::get_ratings
-    @ratings =
-        params[:ratings] ?
-            (params[:ratings].is_a?(Array) ? params[:ratings] : params[:ratings].keys) :
-            @all_ratings
+    @redirect = false
 
-    @sort = params[:sort]
-    @movies = Movie.find_all_by_rating(@ratings ? @ratings : nil, :order => @sort)
+    if params[:ratings]
+      session[:ratings] = params[:ratings]
+    elsif session[:ratings]
+      params[:ratings] = session[:ratings]
+      @redirect = true
+    end
+    if params[:sort]
+      session[:sort] = params[:sort]
+    elsif session[:sort]
+      params[:sort] = session[:sort]
+      @redirect = true
+    end
+
+    if @redirect
+      flash.keep
+      redirect_to movies_path(params)
+    elsif
+      @all_ratings = Movie::get_ratings
+
+      @ratings =
+          params[:ratings] ?
+              (params[:ratings].is_a?(Array) ? params[:ratings] : params[:ratings].keys) :
+              @all_ratings
+
+      @sort = params[:sort]
+      @movies = Movie.find_all_by_rating(@ratings ? @ratings : nil, :order => @sort)
+    end
   end
+
 
   def new
     # default: render 'new' template
